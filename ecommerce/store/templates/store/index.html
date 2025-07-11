@@ -5,5 +5,17 @@
 {% block content %}
     <div class="header">
         <h1>My ECommerce</h1>
+        <br>
+        <h2>Products</h2>
+        <div class="product-list">
+            <ul>
+                {% for product in products %}
+                <li>{{product.name}}</li>
+                {% empty %}
+                    <h4>No products available</h4>
+                {% endfor %}
+            </ul>
+        </div>
+
     </div>
 {% endblock %}
