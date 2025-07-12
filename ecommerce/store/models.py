@@ -6,9 +6,11 @@ from django.utils.text import slugify
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True, null=True, blank=True)
+    parent = models.ForeignKey('self', related_name='children', on_delete=models.CASCADE, blank=True, null=True)
     
     class Meta:
         verbose_name_plural = 'categories'
+        unique_together = ('slug', 'parent',)    
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -19,7 +21,13 @@ class Category(models.Model):
         return reverse('store:category_list', args=[self.slug])
 
     def __str__(self):
-        return self.name
+        full_path = [self.name]
+        k = self.parent
+        while k is not None:
+            full_path.append(k.name)
+            k = k.parent
+        return ' -> '.join(full_path[::-1])
+
     
 class Product(models.Model):
     category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)

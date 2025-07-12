@@ -6,15 +6,25 @@
     <div class="header">
         <h1>My ECommerce</h1>
         <br>
-        <h2>Products</h2>
+        {% if current_category %}
+            <h2>Products in {{ current_category.name }}</h2>
+        {% else %}
+            <h2>All Products</h2>
+        {% endif %}
         <div class="product-list">
-            <ul>
-                {% for product in products %}
-                <li>{{product.name}}</li>
-                {% empty %}
-                    <h4>No products available</h4>
-                {% endfor %}
-            </ul>
+            {% for product in products %}
+                <div>
+                    <h3>{{ product.name }}</h3>
+                    <p>{{ product.description }}</p>
+                    <p>${{ product.price }}</p>
+                    
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" width="200">
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p>No products available.</p>
+            {% endfor %}
         </div>
 
     </div>

@@ -1,0 +1,35 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    {# The category object is available here #}
+    <h1>{{ category.name }}</h1>
+
+    <div class="product-list">
+        <h3>Products in this collection:</h3>
+        <ul>
+            {% for product in products %}
+                <li>
+                    <h4>{{ product.name }}</h4>
+                    <p>Category: {{ product.category.name }}</p>
+                </li>
+            {% empty %}
+                <li><h4>No products found in this collection.</h4></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    {# You can also show sub-categories if you want #}
+    {% if category.children.all %}
+        <div class="subcategory-list">
+            <h3>Shop by Subcategory:</h3>
+            <ul>
+                {% for subcat in category.children.all %}
+                    <li>
+                        <a href="{{ subcat.get_absolute_url }}">{{ subcat.name }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+{% endblock %}
