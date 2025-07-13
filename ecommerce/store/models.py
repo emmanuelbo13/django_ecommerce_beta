@@ -20,6 +20,7 @@ class Category(models.Model):
     def get_absolute_url(self):
         return reverse('store:category_list', args=[self.slug])
 
+    # shows the parent category of a child category
     def __str__(self):
         full_path = [self.name]
         k = self.parent

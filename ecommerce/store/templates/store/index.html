@@ -1,31 +1,23 @@
 {% extends 'layout.html' %}
 
 {% load static %}
+{% load store_extras %} <!-- Load the custom filter for dictionary access -->
 
 {% block content %}
     <div class="header">
-        <h1>My ECommerce</h1>
+        <h1>My Ecommerce</h1>
         <br>
-        {% if current_category %}
-            <h2>Products in {{ current_category.name }}</h2>
-        {% else %}
-            <h2>All Products</h2>
-        {% endif %}
-        <div class="product-list">
-            {% for product in products %}
-                <div>
-                    <h3>{{ product.name }}</h3>
-                    <p>{{ product.description }}</p>
-                    <p>${{ product.price }}</p>
-                    
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" width="200">
-                    {% endif %}
-                </div>
-            {% empty %}
-                <p>No products available.</p>
-            {% endfor %}
-        </div>
 
+        <hr>
+        {% for parent_cat in parent_categories %}
+            <h3>{{ parent_cat.name }}</h3>
+            {% with products=parent_products|get_item:parent_cat.slug %}
+                {% for product in products %}
+                    <h5>{{product.parent.name}} {{ product.name }}</h5>
+                {% empty %}
+                    <h4>No products available in this category.</h4>
+                {% endfor %}
+            {% endwith %}
+        {% endfor %}
     </div>
 {% endblock %}

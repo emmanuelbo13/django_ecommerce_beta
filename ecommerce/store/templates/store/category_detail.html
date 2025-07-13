@@ -25,7 +25,7 @@
             <ul>
                 {% for subcat in category.children.all %}
                     <li>
-                        <a href="{{ subcat.get_absolute_url }}">{{ subcat.name }}</a>
+                        {{ subcat.name }}
                     </li>
                 {% endfor %}
             </ul>
