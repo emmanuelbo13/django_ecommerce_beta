@@ -11,6 +11,11 @@
                 <li>
                     <h4>{{ product.name }}</h4>
                     <p>Category: {{ product.category.name }}</p>
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 300px; height: 300px;">
+                    {% else %}
+                        <p>No image available</p>
+                    {% endif %}
                 </li>
             {% empty %}
                 <li><h4>No products found in this collection.</h4></li>

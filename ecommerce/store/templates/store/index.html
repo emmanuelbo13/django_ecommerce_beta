@@ -13,7 +13,12 @@
             <h3>{{ parent_cat.name }}</h3>
             {% with products=parent_products|get_item:parent_cat.slug %}
                 {% for product in products %}
-                    <h5>{{product.parent.name}} {{ product.name }}</h5>
+                    <h5>{{ product.name }}</h5>
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 300px; height: 30px;">
+                    {% else %}
+                        <p>No image available</p>
+                    {% endif %}
                 {% empty %}
                     <h4>No products available in this category.</h4>
                 {% endfor %}
