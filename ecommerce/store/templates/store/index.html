@@ -7,7 +7,41 @@
     <div class="header">
         <h1>My Ecommerce</h1>
         <br>
+        <hr>
 
+        <!--This loop will be useful for my navbar --> 
+        <!--Possible refactoring needed to avoid looping over every hierarchy level-->
+        {% if categories %}
+            <h2>Categories</h2>
+            <ul>
+                {% for parent_cat in parent_categories %}
+                    <li>
+                        {{ parent_cat.name }}
+                        <ul>
+                            {% for child in parent_cat.children.all %}
+                                <li>
+                                    {{ child.name }}
+                                    <ul>
+                                        {% for grandchild in child.children.all %}
+                                            <li>
+                                                {{ grandchild.name }}
+                                            </li>
+                                        {% empty %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </li>
+
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No categories available.</p>
+        {% endif %}
+
+        
         <hr>
         {% for parent_cat in parent_categories %}
             <h3>{{ parent_cat.name }}</h3>
@@ -15,7 +49,7 @@
                 {% for product in products %}
                     <h5>{{ product.name }}</h5>
                     {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 300px; height: 30px;">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 300px; height: 300px;">
                     {% else %}
                         <p>No image available</p>
                     {% endif %}

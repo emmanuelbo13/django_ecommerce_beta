@@ -1,2 +1,2 @@
 # django_ecommerce_beta
-Beta site for an ecommerce with django
+Django Beta project for a real ecommerce website.
