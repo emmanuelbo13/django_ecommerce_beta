@@ -31,40 +31,42 @@ class IndexView(TemplateView):
         for parent in parent_categories:
             # Get all categories under this parent (including itself and all descendants)
             all_cats = [parent] + get_all_descendants(parent)
+            print(f"Categories for {parent.name}: {all_cats}")
             # Query products in any of these categories
             parent_products[parent.slug] = Product.objects.filter(category__in=all_cats).distinct()
+            print(f"parent_products dictionary after processing {parent.name}: {parent_products}")
 
         context['parent_categories'] = parent_categories      # Pass parent categories to template
         context['parent_products'] = parent_products          # Pass mapping of parent slug to products
 
-        category_slug = self.kwargs.get('slug')
+        # category_slug = self.kwargs.get('slug')
 
         # If a category slug is provided in the URL, filter products by that category and its children.
         # this is useful to allow inclusion of other paths like 'women/sport-fits' 
-        if category_slug:
-            # Get the category object based on the slug provided in the URL.
-            # If the category does not exist, a 404 error will be raised.
-            # This ensures that the view only processes valid categories.
-            category = get_object_or_404(Category, slug=category_slug)
-            # Recursive function to get all child categories 
-            def get_all_descendants(cat):
-                # Get all direct children of the current category and then recursively get their children.
-                # This builds a flat list of all descendant categories.
-                descendants = list(cat.children.all())
-                for child in cat.children.all():
-                    # Extend the list with descendants of each child category.
-                    descendants.extend(get_all_descendants(child))
-                return descendants
+        # if category_slug:
+        #     # Get the category object based on the slug provided in the URL.
+        #     # If the category does not exist, a 404 error will be raised.
+        #     # This ensures that the view only processes valid categories.
+        #     category = get_object_or_404(Category, slug=category_slug)
+        #     # Recursive function to get all child categories 
+        #     def get_all_descendants(cat):
+        #         # Get all direct children of the current category and then recursively get their children.
+        #         # This builds a flat list of all descendant categories.
+        #         descendants = list(cat.children.all())
+        #         for child in cat.children.all():
+        #             # Extend the list with descendants of each child category.
+        #             descendants.extend(get_all_descendants(child))
+        #         return descendants
             
-            # Get all descendants of the selected category.
-            all_child_categories = get_all_descendants(category)
-            # Create a list of categories to filter products by, including the selected category and all its children.
-            categories_to_filter = [category] + all_child_categories
-            # Filter products to find all that belong to the selected category or its children.
-            context['products'] = Product.objects.filter(category__in=categories_to_filter).distinct()
-        else:
-            # If no category slug is provided, show all products.
-            context['products'] = Product.objects.all().distinct()
+        #     # Get all descendants of the selected category.
+        #     all_child_categories = get_all_descendants(category)
+        #     # Create a list of categories to filter products by, including the selected category and all its children.
+        #     categories_to_filter = [category] + all_child_categories
+        #     # Filter products to find all that belong to the selected category or its children.
+        #     context['products'] = Product.objects.filter(category__in=categories_to_filter).distinct()
+        # else:
+        #     # If no category slug is provided, show all products.
+        #     context['products'] = Product.objects.all().distinct()
         
         context['parent_categories'] = Category.objects.filter(parent=None)
 
