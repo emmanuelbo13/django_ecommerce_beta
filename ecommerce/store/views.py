@@ -72,7 +72,6 @@ class IndexView(TemplateView):
 
         return context
 
-
 # --- CategoryDetailView ---
 # This view displays the products for a single category.
 class CategoryDetailView(DetailView):

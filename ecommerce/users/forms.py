@@ -1,12 +1,25 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser
 
-class CustomUserCreationForm(UserCreationForm):
-    class Meta(UserCreationForm.Meta):
+# Using forms.ModelForm provides more flexibility than UserCreationForm.
+class CustomUserCreationForm(forms.ModelForm):
+    # Explicitly define the password field with a PasswordInput widget 
+    # to ensure the input is masked.
+    password = forms.CharField(widget=forms.PasswordInput)
+
+    class Meta:
+        # Associate the form with the CustomUser model.
         model = CustomUser
-        fields = UserCreationForm.Meta.fields + (
-            'first_name', 'last_name', 'email', 'phone_number',
-            'address_line_1', 'address_line_2', 'city', 'state_province',
-            'zip_postal_code', 'country', 'profile_picture'
-        )
+        # Define the fields to be displayed in the form.
+        fields = ['username', 'email', 'first_name', 'last_name', 'password']
+
+    def save(self, commit=True):
+        # Override the save method to handle password hashing.
+        user = super().save(commit=False)
+        # Use set_password() to securely hash the password 
+        # before saving it to the database.
+        user.set_password(self.cleaned_data["password"])
+        if commit:
+            user.save()
+        return user
+        
