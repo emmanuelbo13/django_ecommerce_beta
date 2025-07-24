@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic import ListView
 from .models import Address  # Assuming you have an Address model defined
 from .forms import CustomUserCreationForm, AddressForm
@@ -55,7 +55,7 @@ class LogoutView(View):
         # When a user accesses this view, log them out.
         logout(request)
         # Redirect to the login page after logging out.
-        return redirect(reverse_lazy('login'))
+        return redirect(reverse_lazy('users:login'))
 
 class UserProfile(View):
     template_name = 'users/user_profile.html'
@@ -69,7 +69,7 @@ class CreateUserAddress(LoginRequiredMixin, CreateView):
     model = Address
     form_class = AddressForm
     template_name = 'users/create_address.html'
-    success_url = reverse_lazy('user_addresses')
+    success_url = reverse_lazy('users:user_addresses')
     success_message = "Address added successfully"
     login_url = reverse_lazy('login')  # Redirect to login if not authenticated
 
@@ -83,8 +83,19 @@ class UserAddressesList(ListView):
     model = Address  
     template_name = 'users/addresses.html'
     context_object_name = 'addresses'
-    login_url = reverse_lazy('login')  # Redirect to login if not authenticated
+    login_url = reverse_lazy('users:login')  # Redirect to login if not authenticated
 
     def get_queryset(self):
         # Filter addresses by the logged-in user
         return Address.objects.filter(user=self.request.user)
+    
+class UpdateAddress(LoginRequiredMixin, UpdateView):
+    model = Address
+    form_class = AddressForm
+    template_name = 'users/update_address.html'
+    success_url = reverse_lazy('users:user_addresses')
+    success_message = "Address was updated successfully"
+    login_url = reverse_lazy('users:login')  # Redirect to login if not authenticated
+
+    def get_queryset(self):
+        return self.model.objects.filter(user=self.request.user)
