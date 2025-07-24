@@ -6,4 +6,5 @@ urlpatterns = [
     path('login/', views.LoginView.as_view(), name='login'),
     # Add the logout URL.
     path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('profile/', views.UserProfile.as_view(), name='user_profile')
 ]

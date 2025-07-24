@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+
+{% load static %}
+
+{% block title %}
+    <title>User profile</title>
+{% endblock %}
+
+{% block content %}
+
+    <div class="user-card">
+        <h4>{{user.first_name}} {{user.last_name}}</h4>
+        <h6>{{user.username}}</h6>
+        <h6>{{user.email}}</h6>
+    </div>
+
+    <div class="option-cards">
+        <a href="#" class="card">
+            <h5>My Orders</h5>
+            <p>View your past orders.</p>
+        </a>
+
+        <a href="#" class="card">
+            <h5>Account</h5>
+            <p>Update your personal information</p>
+        </a>
+
+        <a href="#" class="card">
+            <h5>Wishlist</h5>
+            <p>View items you have saved for later.</p>
+        </a>
+
+        <a href="" class="card">
+            <h5>Payment information</h5>
+            <p>Manage your payment methods.</p>
+        </a>
+    </div>
+    
+    <hr>
+    <a href="">Delete account</a>
+
+
+{% endblock %}

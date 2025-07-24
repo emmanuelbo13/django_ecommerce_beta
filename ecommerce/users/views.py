@@ -57,3 +57,9 @@ class LogoutView(View):
         # Redirect to the login page after logging out.
         return redirect(reverse_lazy('login'))
 
+class UserProfile(View):
+    template_name = 'users/user_profile.html'
+
+    def get(self, request, *args, **kwargs):
+        # Render the user's profile page.
+        return render(request, self.template_name, {'user': request.user})
