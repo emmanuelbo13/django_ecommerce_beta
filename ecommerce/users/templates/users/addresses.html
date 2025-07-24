@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% load static %}
+
+{% block title %}
+    <title>Addresses</title>
+{% endblock %}
+
+{% block content %}
+    <h2>Manage Addresses</h2>
+    <hr>
+
+    {% if addresses %}
+        <ul class="list-group">
+            {% for address in addresses %}
+                <li>{{address.address.line_1}}</li>
+                <li>{{address.address.line_2}}</li>
+                <li>{{address.address.city}}, {{address.address.state}} {{address.address.zip_code}}</li>
+                <li>{{address.address.country}}</li>
+                <li>
+                    <a href="#" class="btn btn-primary">Edit</a>
+                    <a href="#" class="btn btn-danger">Delete</a>   
+                </li>
+            {% endfor %}
+    {% else %}
+        <p>No addresses available.</p>
+    {% endif %}
+
+    <a href="{% url 'users:create_address' %}">Add address</a>
+
+{% endblock %}
+

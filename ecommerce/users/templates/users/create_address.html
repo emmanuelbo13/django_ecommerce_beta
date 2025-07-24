@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+
+{% load static %}
+
+{% block content %}
+    <h2>Create Address</h2>
+    <hr>
+
+    <form method="post" action="{% url 'users:create_address' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Add Address</button>
+    </form>
+
+    <hr>
+    <a href="{% url 'users:user_addresses' %}">Back to Addresses</a>
+    
+{% endblock %}

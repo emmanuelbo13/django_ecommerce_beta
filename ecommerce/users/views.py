@@ -1,20 +1,20 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView
-from .forms import CustomUserCreationForm
+from django.views.generic import ListView
+from .models import Address  # Assuming you have an Address model defined
+from .forms import CustomUserCreationForm, AddressForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 # Import Django's built-in authentication form and login/logout functions
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.views import View
+from django.contrib.messages.views import SuccessMessageMixin
 
 class RegisterView(CreateView):
     form_class = CustomUserCreationForm
     template_name = 'users/register.html'
     success_url = reverse_lazy('login') # Redirect to login page on successful registration
-
-    def get(self, request, *args, **kwargs):
-        form = self.form_class()
-        return render(request, self.template_name, {'form': form})
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
@@ -63,3 +63,28 @@ class UserProfile(View):
     def get(self, request, *args, **kwargs):
         # Render the user's profile page.
         return render(request, self.template_name, {'user': request.user})
+
+# USER ADDRESSES CRUD
+class CreateUserAddress(LoginRequiredMixin, CreateView):
+    model = Address
+    form_class = AddressForm
+    template_name = 'users/create_address.html'
+    success_url = reverse_lazy('user_addresses')
+    success_message = "Address added successfully"
+    login_url = reverse_lazy('login')  # Redirect to login if not authenticated
+
+    def form_valid(self, form):
+        # Set the user to the currently logged-in user
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+    
+
+class UserAddressesList(ListView):
+    model = Address  
+    template_name = 'users/addresses.html'
+    context_object_name = 'addresses'
+    login_url = reverse_lazy('login')  # Redirect to login if not authenticated
+
+    def get_queryset(self):
+        # Filter addresses by the logged-in user
+        return Address.objects.filter(user=self.request.user)
