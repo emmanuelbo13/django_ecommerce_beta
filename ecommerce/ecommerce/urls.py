@@ -20,5 +20,6 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('store.urls')),  # Include the store app URLs
-    path('users/', include(('users.urls', 'users'), namespace='users')),  # Include the users app URLs
+    path('users/', include(('users.urls', 'users'), namespace='users')), 
+    path('schema-viewer/', include('schema_viewer.urls')) # Include the users app URLs
 ]

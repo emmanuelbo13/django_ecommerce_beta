@@ -1,3 +1,5 @@
+from django.db import IntegrityError
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
@@ -76,7 +78,11 @@ class CreateUserAddress(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         # Set the user to the currently logged-in user
         form.instance.user = self.request.user
-        return super().form_valid(form)
+        try:
+            return super().form_valid(form)
+        except IntegrityError:
+            messages.error(self.request, 'You have already saved this address.')
+            return self.form_invalid(form)
     
 
 class UserAddressesList(ListView):
