@@ -10,8 +10,8 @@ class CustomUser(AbstractUser):
     
 class Address(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='addresses')
-    address_line_1 = models.CharField("Address line 1", max_length=255)
-    address_line_2 = models.CharField("Address line 2", max_length=255, blank=True, null=True)
+    address_line_1 = models.CharField("Address line 1", max_length=128)
+    address_line_2 = models.CharField("Address line 2", max_length=128, blank=True, null=True)
     city = models.CharField("City", max_length=100)
     state = models.CharField("State / Province", max_length=100)
     postal_code = models.CharField("Postal Code", max_length=20)
@@ -25,5 +25,8 @@ class Address(models.Model):
         return reverse('user_addresses')
     
     class Meta:
-        unique_together = ('user', 'address_line_1', 'city', 'postal_code') 
+        # Enforce that an address must be unique for a user.
+        # An address is considered unique if the combination of all its fields 
+        # (from address_line_1 to country) is unique for a given user.
+        unique_together = ('user', 'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country') 
         verbose_name_plural = 'Addresses'

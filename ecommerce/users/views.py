@@ -2,7 +2,7 @@ from django.db import IntegrityError
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView
 from .models import Address  # Assuming you have an Address model defined
 from .forms import CustomUserCreationForm, AddressForm
@@ -101,6 +101,15 @@ class UpdateAddress(LoginRequiredMixin, UpdateView):
     template_name = 'users/update_address.html'
     success_url = reverse_lazy('users:user_addresses')
     success_message = "Address was updated successfully"
+    login_url = reverse_lazy('users:login')  # Redirect to login if not authenticated
+
+    def get_queryset(self):
+        return self.model.objects.filter(user=self.request.user)
+
+class DeleteAddress(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
+    model = Address
+    success_url = reverse_lazy('users:user_addresses')
+    success_message = "Address was deleted successfully"
     login_url = reverse_lazy('users:login')  # Redirect to login if not authenticated
 
     def get_queryset(self):

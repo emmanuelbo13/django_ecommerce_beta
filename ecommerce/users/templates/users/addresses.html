@@ -17,16 +17,20 @@
                 <li>{{address.address_line_2}}</li>
                 <li>{{address.city}}, {{address.state}} {{address.postal_code}}</li>
                 <li>{{address.country}}</li>
-                <li>
+                <li class="">
                     <a href="{% url 'users:update_address' pk=address.pk %}" class="btn btn-primary">Edit</a>
-                    <a href="#" class="btn btn-danger">Delete</a>   
+                    <form method="post" action="{% url 'users:delete_address' address.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
                 </li>
             {% endfor %}
     {% else %}
         <p>No addresses available.</p>
     {% endif %}
 
-    <a href="{% url 'users:create_address' %}">Add address</a>
+    <hr>
+    <a href="{% url 'users:create_address' %}" class="btn btn-outline-primary">Add address</a>
 
 {% endblock %}
 
