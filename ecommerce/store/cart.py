@@ -33,15 +33,16 @@ class Cart:
         # Convert the product ID to a string because Django uses JSON to serialize session data.
         product_id = str(product.id)
 
-        # If the product is not already in the cart, add it.
+        # If the product is not in the cart, initialize it with the given quantity.
         if product_id not in self.cart:
-            self.cart[product_id] = {'quantity': 0, 'price': str(product.price)}
-        
-        # Update the quantity.
-        if override_quantity:
+            self.cart[product_id] = {'quantity': quantity, 'price': str(product.price)}
+        # If the user is updating the quantity from the cart page, override the existing quantity.
+        elif override_quantity:
             self.cart[product_id]['quantity'] = quantity
+        # Otherwise, add the new quantity to the existing one.
         else:
             self.cart[product_id]['quantity'] += quantity
+        
         self.save()
 
     def save(self):

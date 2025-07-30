@@ -144,7 +144,9 @@ class AddToCartView(View):
         # Get the quantity from the POST data, defaulting to 1 if not provided.
         quantity = int(request.POST.get('quantity', 1))
         # Add the product to the cart.
-        cart.add(product=product, quantity=quantity, override_quantity=False)
+        # Check if the quantity should be overridden. The value from the form is a string.
+        override = request.POST.get('override_quantity', 'False').lower() in ('true', '1', 't')
+        cart.add(product=product, quantity=quantity, override_quantity=override)
         # Redirect to the cart detail view.
         return redirect('store:cart_detail')
     
