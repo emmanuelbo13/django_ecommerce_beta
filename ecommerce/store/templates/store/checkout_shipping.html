@@ -1,0 +1,127 @@
+<!--
+This template is for the first step of the checkout process: Shipping Address Selection.
+It extends a base layout 'layout.html' to maintain a consistent look and feel across the site.
+-->
+{% extends "layout.html" %}
+
+<!-- Start of the main content block -->
+{% block content %}
+<div class="container mt-5">
+    <!-- Page Title -->
+    <h2>Checkout - Step 1: Shipping</h2>
+    <hr>
+
+    <!-- 
+    The layout is structured in a row with two columns using Bootstrap's grid system.
+    - The left column (col-md-8) contains the shipping address selection form.
+    - The right column (col-md-4) displays the order summary.
+    -->
+    <div class="row">
+        <!-- Left Column: Shipping Address Form -->
+        <div class="col-md-8">
+            <!-- 
+            This form allows the user to select one of their saved addresses.
+            When submitted, it sends a POST request to the current URL (the CheckoutView).
+            -->
+            <form method="post">
+                <!-- 
+                Django's Cross-Site Request Forgery protection token.
+                This is a security measure and is required for all POST forms.
+                -->
+                {% csrf_token %}
+                
+                <h4>Select a Shipping Address</h4>
+
+                <!-- 
+                Check if there are any addresses available for the user.
+                The 'addresses' variable is passed from the CheckoutView.
+                -->
+                {% if addresses %}
+                    <!-- 
+                    Loop through each 'address' object in the 'addresses' list.
+                    This will display each saved address as a selectable option.
+                    -->
+                    {% for address in addresses %}
+                    <div class="form-check mb-2">
+                        <!-- 
+                        A radio button for each address.
+                        - The 'name' attribute is 'shipping_address', so only one can be selected.
+                        - The 'value' is the unique ID of the address, which will be sent to the server.
+                        - The 'id' is unique for each radio button to link it with its label.
+                        - '{% if forloop.first %}checked{% endif %}' makes the first address in the list selected by default.
+                        -->
+                        <input class="form-check-input" type="radio" name="shipping_address" id="address{{ address.id }}" value="{{ address.id }}" {% if forloop.first %}checked{% endif %}>
+                        <label class="form-check-label" for="address{{ address.id }}">
+                            <!-- Display the full address details in a readable format. -->
+                            <strong>{{ address.address_line_1 }}</strong><br>
+                            {% if address.address_line_2 %}{{ address.address_line_2 }}<br>{% endif %}
+                            {{ address.city }}, {{ address.state }} {{ address.postal_code }}<br>
+                            {{ address.country }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- 
+                    If the user has no saved addresses, display a message.
+                    -->
+                    <p>You have no saved addresses. Please add one to continue.</p>
+                {% endif %}
+
+                <!-- 
+                This link takes the user to the page for creating a new address.
+                The URL is resolved using Django's {% url %} template tag.
+                'users:create_address' refers to the 'create_address' URL name in the 'users' app.
+                -->
+                <a href="{% url 'users:create_address' %}" class="btn btn-secondary mt-3">Add New Address</a>
+                
+                <!-- 
+                The submit button for the form.
+                Clicking this will send the selected address ID to the CheckoutView.
+                It is only shown if there are addresses to choose from.
+                -->
+                {% if addresses %}
+                <button type="submit" class="btn btn-primary mt-3">Continue to Payment</button>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Right Column: Order Summary -->
+        <div class="col-md-4">
+            <h4>Order Summary</h4>
+            <!-- 
+            A list group to display the items in the cart.
+            The 'cart' object is passed from the CheckoutView.
+            -->
+            <ul class="list-group mb-3">
+                <!-- 
+                Iterate through each 'item' in the 'cart'.
+                The Cart class's __iter__ method provides these items.
+                -->
+                {% for item in cart %}
+                <li class="list-group-item d-flex justify-content-between lh-condensed">
+                    <div>
+                        <!-- Display the product name. -->
+                        <h6 class="my-0">{{ item.product.name }}</h6>
+                        <!-- Display the quantity for the item. -->
+                        <small class="text-muted">Quantity: {{ item.quantity }}</small>
+                    </div>
+                    <!-- Display the total price for this line item (price * quantity). -->
+                    <span class="text-muted">${{ item.total_price|floatformat:2 }}</span>
+                </li>
+                {% endfor %}
+
+                <!-- 
+                Display the final total price for the entire cart.
+                'cart.get_total_price' is a method on the Cart class.
+                '|floatformat:2' ensures the price is displayed with two decimal places.
+                -->
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Total (COP)</span>
+                    <strong>${{ cart.get_total_price|floatformat:2 }}</strong>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<!-- End of the main content block -->

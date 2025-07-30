@@ -1,6 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import TemplateView, DetailView
+from django.views import View
+
 from .models import Product, Category
+from .cart import Cart
 
 # Create your views here.
 
@@ -106,3 +109,88 @@ class CategoryDetailView(DetailView):
         context['products'] = Product.objects.filter(category__in=categories_to_filter).distinct()
         
         return context
+
+class ProductDetailView(DetailView):
+    model = Product
+    template_name = 'store/product_detail.html'
+    context_object_name = 'product'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get the product object that this view is currently displaying.
+        product = self.get_object()
+        # Add the product to the context.
+        context['product'] = product
+        return context
+
+class CartDetailView(View):
+    # Display the cart contents.
+    template_name = 'store/cart_detail.html'
+    def get(self, request, *args, **kwargs):
+        # Initialize the cart using the Cart class.
+        cart = Cart(request)
+        # If the cart is empty, redirect to the index page.
+        # if not cart:
+        #     return redirect('store:index')
+        
+        return render(request, self.template_name, {'cart':cart}) 
+
+class AddToCartView(View):
+    # add a product to the cart
+    def post(self, request, product_id, *args, **kwargs):
+        # Get the product ID from the POST data.
+        cart = Cart(request)
+        product = get_object_or_404(Product, id=product_id)
+        # Get the quantity from the POST data, defaulting to 1 if not provided.
+        quantity = int(request.POST.get('quantity', 1))
+        # Add the product to the cart.
+        cart.add(product=product, quantity=quantity, override_quantity=False)
+        # Redirect to the cart detail view.
+        return redirect('store:cart_detail')
+    
+class RemoveFromCartView(View):
+    # remove a product from the cart
+    def post(self, request, product_id, *args, **kwargs):
+        # Get the product ID from the POST data.
+        cart = Cart(request)
+        product = get_object_or_404(Product, id=product_id)
+        # Remove the product from the cart.
+        cart.remove(product=product)
+        # Redirect to the cart detail view.
+        return redirect('store:cart_detail')
+
+class CheckoutView(View):
+    template_name = 'store/checkout.html'
+
+    def get(self, request, *args, **kwargs):
+        # Check if the cart exists in the session.
+        cart = Cart(request)
+        if not cart:
+            return redirect('store:index')  # Redirect to index if cart is empty
+        # if the user is authenticated, get their addresses
+        if request.user.is_authenticated:
+            addresses = request.user.addresses.filter(user=request.user)
+            # Render the checkout page with the cart and user addresses.
+            # The context dictionary contains the cart and addresses to be used in the template.
+            context = {
+                'cart': cart,
+                'addresses': addresses
+            }
+            return render(request, self.template_name, context)
+        else:
+            # If the user is not authenticated, redirect to login page.
+            return redirect('users:login')
+                            
+    def post(self, request, *args, **kwargs):
+        cart = Cart(request)
+        if not cart:
+            return redirect('store:index')
+        
+        # shipping address selection logic
+        if 'shipping_address' in request.POST:
+            selected_address_id = request.POST.get('shipping_address')
+            print(f"Selected shipping address ID: {selected_address_id}")
+
+            return redirect('store:checkout_payment')  # Redirect to the same checkout page for now
+    
+        return redirect('store:checkout_shipping')  # Redirect to index if no address is selected

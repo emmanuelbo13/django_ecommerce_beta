@@ -41,22 +41,32 @@
             <p>No categories available.</p>
         {% endif %}
 
-        
         <hr>
+
         {% for parent_cat in parent_categories %}
-            <h3>{{ parent_cat.name }}</h3>
-            {% with products=parent_products|get_item:parent_cat.slug %}
-                {% for product in products %}
-                    <h5>{{ product.name }}</h5>
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 300px; height: 300px;">
+            <section>
+                <h2>{{ parent_cat.name }}</h2>
+                {% with products=parent_products|get_item:parent_cat.slug %}
+                    {% if products %}
+                        <ul class="product-list">
+                            {% for product in products %}
+                                <li>
+                                    <a href="{% url 'store:product_detail' slug=product.slug %}">
+                                        <h3>{{ product.name }}</h3>
+                                        {% if product.image %}
+                                            <img src="{{ product.image.url }}" alt="{{ product.name }}" width="200" height="200">
+                                        {% else %}
+                                            <div class="no-image">No image available</div>
+                                        {% endif %}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
                     {% else %}
-                        <p>No image available</p>
+                        <p>No products available in this category.</p>
                     {% endif %}
-                {% empty %}
-                    <h4>No products available in this category.</h4>
-                {% endfor %}
-            {% endwith %}
+                {% endwith %}
+            </section>
         {% endfor %}
-    </div>
+
 {% endblock %}
