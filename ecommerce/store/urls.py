@@ -16,6 +16,11 @@ urlpatterns = [
     path('cart/add/<int:product_id>/', views.AddToCartView.as_view(), name='add_to_cart'),
     path('cart/remove/<int:product_id>/', views.RemoveFromCartView.as_view(), name='remove_from_cart'),
     path('checkout/shipping', views.CheckoutView.as_view(), name='checkout_shipping'),
+    path('checkout/payment', views.PaymentView.as_view(), name='checkout_payment'),
+    path('payment/success/', views.PaymentSuccessView.as_view(), name='payment_success'),
+    path('payment/failure/', views.PaymentFailureView.as_view(), name='payment_failure'),
+    path('payment/pending/', views.PaymentPendingView.as_view(), name='payment_pending'),
+    path('payment/webhook/', views.mercadopago_webhook, name='mercadopago_webhook'),
 ]
 
 if settings.DEBUG:

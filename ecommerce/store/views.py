@@ -1,11 +1,18 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import TemplateView, DetailView
 from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
+from django.urls import reverse
+from decimal import Decimal
 
-from .models import Product, Category
+from .models import Product, Category, Order, OrderItem
+from users.models import Address
 from .cart import Cart
-
-# Create your views here.
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse, HttpResponseBadRequest
+from .mercadopago_service import MercadoPagoService
+from .models import Order
 
 # --- IndexView ---
 # This view handles the main page of the store.
@@ -41,35 +48,6 @@ class IndexView(TemplateView):
 
         context['parent_categories'] = parent_categories      # Pass parent categories to template
         context['parent_products'] = parent_products          # Pass mapping of parent slug to products
-
-        # category_slug = self.kwargs.get('slug')
-
-        # If a category slug is provided in the URL, filter products by that category and its children.
-        # this is useful to allow inclusion of other paths like 'women/sport-fits' 
-        # if category_slug:
-        #     # Get the category object based on the slug provided in the URL.
-        #     # If the category does not exist, a 404 error will be raised.
-        #     # This ensures that the view only processes valid categories.
-        #     category = get_object_or_404(Category, slug=category_slug)
-        #     # Recursive function to get all child categories 
-        #     def get_all_descendants(cat):
-        #         # Get all direct children of the current category and then recursively get their children.
-        #         # This builds a flat list of all descendant categories.
-        #         descendants = list(cat.children.all())
-        #         for child in cat.children.all():
-        #             # Extend the list with descendants of each child category.
-        #             descendants.extend(get_all_descendants(child))
-        #         return descendants
-            
-        #     # Get all descendants of the selected category.
-        #     all_child_categories = get_all_descendants(category)
-        #     # Create a list of categories to filter products by, including the selected category and all its children.
-        #     categories_to_filter = [category] + all_child_categories
-        #     # Filter products to find all that belong to the selected category or its children.
-        #     context['products'] = Product.objects.filter(category__in=categories_to_filter).distinct()
-        # else:
-        #     # If no category slug is provided, show all products.
-        #     context['products'] = Product.objects.all().distinct()
         
         context['parent_categories'] = Category.objects.filter(parent=None)
 
@@ -129,10 +107,6 @@ class CartDetailView(View):
     def get(self, request, *args, **kwargs):
         # Initialize the cart using the Cart class.
         cart = Cart(request)
-        # If the cart is empty, redirect to the index page.
-        # if not cart:
-        #     return redirect('store:index')
-        
         return render(request, self.template_name, {'cart':cart}) 
 
 class AddToCartView(View):
@@ -161,38 +135,145 @@ class RemoveFromCartView(View):
         # Redirect to the cart detail view.
         return redirect('store:cart_detail')
 
-class CheckoutView(View):
+class CheckoutView(LoginRequiredMixin, View):
+    """
+    Handles the multi-step checkout process.
+    Step 1: Shipping address selection.
+    """
     template_name = 'store/checkout.html'
+    login_url = '/users/login/' # Redirect here if user is not logged in
 
     def get(self, request, *args, **kwargs):
-        # Check if the cart exists in the session.
+        """
+        Handles GET requests for the shipping address selection page.
+        """
         cart = Cart(request)
         if not cart:
-            return redirect('store:index')  # Redirect to index if cart is empty
-        # if the user is authenticated, get their addresses
-        if request.user.is_authenticated:
-            addresses = request.user.addresses.filter(user=request.user)
-            # Render the checkout page with the cart and user addresses.
-            # The context dictionary contains the cart and addresses to be used in the template.
+            # If the cart is empty, there's nothing to check out.
+            # Redirect to the main store page.
+            return redirect('store:index')
+
+        # Get all addresses associated with the currently logged-in user.
+        addresses = Address.objects.filter(user=request.user)
+
+        context = {
+            'cart': cart,
+            'addresses': addresses
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests when the user selects a shipping address.
+        """
+        cart = Cart(request)
+        if not cart:
+            return redirect('store:index')
+
+        # Get the ID of the selected address from the form submission.
+        selected_address_id = request.POST.get('shipping_address')
+
+        if not selected_address_id:
+            # If no address was selected, re-render the page with an error.
+            # (This is a basic way to handle it; you could add a Django message.)
+            addresses = Address.objects.filter(user=request.user)
             context = {
                 'cart': cart,
-                'addresses': addresses
+                'addresses': addresses,
+                'error': 'Please select a shipping address.'
             }
             return render(request, self.template_name, context)
-        else:
-            # If the user is not authenticated, redirect to login page.
-            return redirect('users:login')
-                            
+
+        # Store the selected address ID in the user's session.
+        # This allows the next step (payment) to know which address was chosen.
+        request.session['shipping_address_id'] = int(selected_address_id)
+        
+        # Redirect to the payment page
+        return redirect('store:checkout_payment')
+
+class PaymentView(LoginRequiredMixin, View):
+    template_name = 'store/payment.html'
+    login_url = '/users/login/'
+
+    def get(self, request, *args, **kwargs):
+        cart = Cart(request)
+        if not cart:
+            return redirect('store:index')
+
+        shipping_address_id = request.session.get('shipping_address_id')
+        if not shipping_address_id:
+            return redirect('store:checkout_shipping')
+
+        shipping_address = get_object_or_404(Address, id=shipping_address_id)
+
+        context = {
+            'cart': cart,
+            'shipping_address': shipping_address,
+        }
+        return render(request, self.template_name, context)
+
     def post(self, request, *args, **kwargs):
         cart = Cart(request)
         if not cart:
             return redirect('store:index')
-        
-        # shipping address selection logic
-        if 'shipping_address' in request.POST:
-            selected_address_id = request.POST.get('shipping_address')
-            print(f"Selected shipping address ID: {selected_address_id}")
 
-            return redirect('store:checkout_payment')  # Redirect to the same checkout page for now
-    
-        return redirect('store:checkout_shipping')  # Redirect to index if no address is selected
+        shipping_address_id = request.session.get('shipping_address_id')
+        if not shipping_address_id:
+            return redirect('store:checkout_shipping')
+
+        shipping_address = get_object_or_404(Address, id=shipping_address_id)
+
+        # Create Order
+        order = Order.objects.create(
+            user=request.user,
+            shipping_address=shipping_address,
+            total_price=cart.get_total_price(),
+        )
+        for item in cart:
+            OrderItem.objects.create(
+                order=order,
+                product=item['product'],
+                price=item['product'].price,
+                quantity=item['quantity'],
+            )
+
+        mp_service = MercadoPagoService()
+        preference_response = mp_service.create_preference(cart, shipping_address)
+
+        if preference_response['status'] == 201:
+            preference_data = preference_response['response']
+            order.payment_id = preference_data['id']
+            order.save()
+            return redirect(preference_data['init_point'])
+        else:
+            # Handle error, e.g., log the error and redirect to a failure page
+            print(f"Mercado Pago preference creation failed: {preference_response}")
+            return redirect('store:payment_failure')
+
+class PaymentSuccessView(TemplateView):
+    template_name = 'store/payment_success.html'
+
+class PaymentFailureView(TemplateView):
+    template_name = 'store/payment_failure.html'
+
+class PaymentPendingView(TemplateView):
+    template_name = 'store/payment_pending.html'
+
+@csrf_exempt
+def mercadopago_webhook(request):
+    if request.method == 'POST':
+        data = request.json
+        if data.get('type') == 'payment':
+            payment_id = data['data']['id']
+            mp_service = MercadoPagoService()
+            payment_status = mp_service.get_payment_status(payment_id)
+
+            try:
+                order = Order.objects.get(payment_id=payment_id)
+                order.status = payment_status
+                order.save()
+            except Order.DoesNotExist:
+                pass
+
+        return JsonResponse({'status': 'ok'})
+    return HttpResponseBadRequest()

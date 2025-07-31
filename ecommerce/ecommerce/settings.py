@@ -11,9 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv()
 
 
 # Quick-start development settings - unsuitable for production
@@ -37,10 +40,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'schema_viewer',
     'store',  
-    'users'
+    'users',
 ]
+
+# A unique identifier for the current site in the django_site database table.
+# This is used by the sites framework to identify the current site.
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -137,3 +145,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CART_SESSION_ID = 'cart'
 
 
+
+# Mercado Pago API credentials and return URLs
+# IMPORTANT: Replace 'YOUR_MERCADO_PAGO_ACCESS_TOKEN' with your actual Mercado Pago Access Token.
+# For testing, use your Sandbox Access Token.
+MERCADO_PAGO_ACCESS_TOKEN = os.getenv('MERCADO_PAGO_ACCESS_TOKEN')
+
+# Mercado Pago return URLs after payment.
+# IMPORTANT: When testing with Mercado Pago, these URLs MUST be publicly accessible.
+# During local development, you will need to use a tool like ngrok to expose your local server.
+# Replace 'YOUR_NGROK_URL_HERE' with the actual HTTPS forwarding URL provided by ngrok
+# (e.g., https://abcdef12345.ngrok-free.app).
+MERCADO_PAGO_SUCCESS_URL = 'YOUR_NGROK_URL_HERE/payment/success/'
+MERCADO_PAGO_FAILURE_URL = 'YOUR_NGROK_URL_HERE/payment/failure/'
+MERCADO_PAGO_PENDING_URL = 'YOUR_NGROK_URL_HERE/payment/pending/'
