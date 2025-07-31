@@ -12,7 +12,7 @@ class MercadoPagoService:
                 {
                     "title": item['product'].name,
                     "quantity": item['quantity'],
-                    "unit_price": float(item['product'].price),
+                    "unit_price": int(item['product'].price * 100),
                 }
             )
 

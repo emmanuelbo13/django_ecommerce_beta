@@ -28,7 +28,8 @@ SECRET_KEY = 'django-insecure-_0b%-^x2!4)d4&b7nsg!594of8zjri+x$0_b81n*ccf%1v04(!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['5baa6043f459.ngrok-free.app', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://5baa6043f459.ngrok-free.app']
 
 
 # Application definition
@@ -158,4 +159,4 @@ MERCADO_PAGO_ACCESS_TOKEN = os.getenv('MERCADO_PAGO_ACCESS_TOKEN')
 # (e.g., https://abcdef12345.ngrok-free.app).
 MERCADO_PAGO_SUCCESS_URL = 'YOUR_NGROK_URL_HERE/payment/success/'
 MERCADO_PAGO_FAILURE_URL = 'YOUR_NGROK_URL_HERE/payment/failure/'
-MERCADO_PAGO_PENDING_URL = 'YOUR_NGROK_URL_HERE/payment/pending/'
+MERCADO_PAGO_PENDING_URL = 'https://5baa6043f459.ngrok-free.app/payment/pending/'

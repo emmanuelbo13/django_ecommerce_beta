@@ -28,4 +28,76 @@ Payment Integration
     3. Build a view for users to see their order history.
 
 
+LAST Gemini response
+
+Okay, I will update your ecommerce/ecommerce/settings.py file with
+  placeholder ngrok URLs for the Mercado Pago back_urls.
+
+
+  Important: These are placeholder URLs. You must replace YOUR_NGROK_URL_HERE
+  with the actual https forwarding URL that ngrok provides when you run ngrok
+  http 8000. This URL changes every time you start ngrok (unless you have a
+  paid ngrok account with a static domain).
+
+
+  Here's the change I'll make:
+ ╭───────────────────────────────────────────────────────────────────────────────╮
+ │ ✔  Edit ecommerce\ecommerce\settings.py: MERCADO_PAGO_ACCESS_TOKEN = os... =… │
+ │                                                                               │
+ │    146                                                                        │
+ │    147                                                                        │
+ │    148                                                                        │
+ │    149  + # Mercado Pago API credentials and return URLs                      │
+ │    150  + # IMPORTANT: Replace 'YOUR_MERCADO_PAGO_ACCESS_TOKEN'               │
+ │           with your actual Mercado Pago Access Token.                         │
+ │    151  + # For testing, use your Sandbox Access Token.                       │
+ │    152    MERCADO_PAGO_ACCESS_TOKEN =                                         │
+ │           os.getenv('MERCADO_PAGO_ACCESS_TOKEN')                              │
+ │    150  - MERCADO_PAGO_SUCCESS_URL =                                          │
+ │           'http://127.0.0.1:8000/payment/success/'                            │
+ │    151  - MERCADO_PAGO_FAILURE_URL =                                          │
+ │           'http://127.0.0.1:8000/payment/failure/'                            │
+ │    152  - MERCADO_PAGO_PENDING_URL =                                          │
+ │           'http://127.0.0.1:8000/payment/pending/'                            │
+ │    153  +                                                                     │
+ │    154  + # Mercado Pago return URLs after payment.                           │
+ │    155  + # IMPORTANT: When testing with Mercado Pago, these URLs             │
+ │           MUST be publicly accessible.                                        │
+ │    156  + # During local development, you will need to use a tool             │
+ │           like ngrok to expose your local server.                             │
+ │    157  + # Replace 'YOUR_NGROK_URL_HERE' with the actual HTTPS               │
+ │           forwarding URL provided by ngrok                                    │
+ │    158  + # (e.g., https://abcdef12345.ngrok-free.app).                       │
+ │    159  + MERCADO_PAGO_SUCCESS_URL =                                          │
+ │           'YOUR_NGROK_URL_HERE/payment/success/'                              │
+ │    160  + MERCADO_PAGO_FAILURE_URL =                                          │
+ │           'YOUR_NGROK_URL_HERE/payment/failure/'                              │
+ │    161  + MERCADO_PAGO_PENDING_URL =                                          │
+ │           'YOUR_NGROK_URL_HERE/payment/pending/'                              │
+ ╰───────────────────────────────────────────────────────────────────────────────╯
+✦ I have updated your ecommerce/ecommerce/settings.py file with comments and
+  placeholder URLs for Mercado Pago.
+
+  Next Steps (which you need to perform manually):
+
+
+   1. Run ngrok: Open your command prompt, navigate to where you extracted
+      ngrok.exe, and run:
+
+   1     ngrok http 8000
+
+      Keep this window open.
+   2. Get the HTTPS Forwarding URL: From the ngrok output, copy the https
+      forwarding URL (it will look something like
+      https://<random_string>.ngrok-free.app).
+   3. Update `settings.py`: Open ecommerce/ecommerce/settings.py and replace all
+      instances of 'YOUR_NGROK_URL_HERE' with the actual HTTPS ngrok URL you just
+       copied.
+   4. Restart Django Server: After updating settings.py, you must restart your
+      Django development server for the changes to take effect.
+
+
+  Once these steps are completed, try the checkout process again. The Mercado
+  Pago preference creation should now succeed, and you should be redirected to
+   the Mercado Pago payment page.
 
